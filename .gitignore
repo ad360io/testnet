@@ -1,0 +1,10 @@
+# Distribution / packaging
+*/
+idna_ssl.py
+six.py
+
+# Private keys
+key
+
+# Serverless directories
+.serverless

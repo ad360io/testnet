@@ -1,0 +1,12 @@
+service: testnet-xqc
+provider:
+  name: aws
+  runtime: python3.6
+
+functions:
+  sendTestnetXqc:
+    handler: handler.send_testnet_xqc
+    events:
+      - http:
+          path: xqc/testnet/send
+          method: get

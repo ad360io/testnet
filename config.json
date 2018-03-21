@@ -1,0 +1,46 @@
+{
+    "public_key": "9984f38b5f908d8328b79f39c50a09471966cb2a5f30d2ee9225502ef6752692",
+    "default_transfer_amount": "1000",
+    "node_list": [
+        ["http", "104.128.226.60", "7890"],
+        ["http", "82.196.9.187", "7890"],
+        ["http", "23.228.67.85", "7890"],
+        ["http", "80.93.182.146", "7890"],
+        ["http", "188.166.184.158", "7890"],
+        ["http", "150.95.145.157", "7890"],
+        ["http", "37.120.188.83", "7890"],
+        ["http", "50.3.87.123", "7890"],
+        ["http", "118.69.187.7", "7890"],
+        ["http", "45.77.47.227", "7890"]
+    ],
+    "mosaic": {
+        "creator": "5eb8453f94f1088e5d8ce17afb744d0f7726c32cf56e233b14ac38c4198c3513",
+        "id": {
+            "namespaceId": "qchain",
+            "name": "xqc"
+        },
+        "description": "XQC (XEM Qchain) is the mosaic that will be used to power the NEM-based functionality and back-end of the Qchain Marketing Platform. XQC will be hosted on the 'qchain' namespace. For more info, please visit Qchain's homepage at www.qchain.co.",
+        "properties": [
+            {
+                "name": "divisibility",
+                "value": "6"
+            },
+            {
+                "name": "initialSupply",
+                "value": "375000000"
+            },
+            {
+                "name": "supplyMutable",
+                "value": "true"
+            },
+            {
+                "name": "transferable",
+                "value": "true"
+            }
+        ]
+    },
+    "message": {
+        "payload": "Enjoy some testnet XQC!",
+        "type": 1
+    }
+}
