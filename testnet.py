@@ -71,7 +71,7 @@ def create_transfer(recipient, amount):
     )
 
 
-def send_xqc(recipient, amount, node_list):
+def send_xqc(recipient, amount, node_list, max_amount=None):
     '''
     Send testnet XQC to a NEM address. The sending address is hard-coded
     to a master sending account.
@@ -82,8 +82,14 @@ def send_xqc(recipient, amount, node_list):
     :return: NEM response
     '''
 
-    # get parameters
+    # parse and validate the input amount
     amount = nem.MicroXem(nem.Xem(amount))
+    if max_amount is not None:
+        max_amount = nem.MicroXem(nem.Xem(max_amount))
+        if amount > max_amount:
+            raise ValueError("Requested amount is above maximum.")
+
+    # get parameters
     transfer = create_transfer(recipient, amount)
     public_key = common.SecureString.from_file('key.pub')
     private_key = common.SecureString.from_file('key')

@@ -1,6 +1,7 @@
 {
     "public_key": "9984f38b5f908d8328b79f39c50a09471966cb2a5f30d2ee9225502ef6752692",
     "default_transfer_amount": "1000",
+    "maximum_transfer_amount": "50000",
     "node_list": [
         ["http", "104.128.226.60", "7890"],
         ["http", "82.196.9.187", "7890"],

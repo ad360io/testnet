@@ -36,8 +36,9 @@ def send_testnet_xqc(event, context):
     try:
         address = parameters['address']
         amount = parameters.get('amount', testnet.CONFIG['default_transfer_amount'])
+        max_amount = testnet.CONFIG['maximum_transfer_amount']
         node_list = parameters.get('nodeList', testnet.CONFIG['node_list'])
-        body = testnet.send_xqc(address, amount, node_list)
+        body = testnet.send_xqc(address, amount, node_list, max_amount)
 
     except Exception as exception:
         return request_error(exception)
