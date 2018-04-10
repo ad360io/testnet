@@ -14,6 +14,7 @@ import datetime
 import decimal
 import json
 import math
+import boto3
 from qchain import common, nem
 
 # CONFIG
@@ -24,6 +25,8 @@ with open('config.json') as f:
 
 MOSAIC_DEFINITION = nem.MosaicDefinition.from_dict(CONFIG['mosaic'])
 MESSAGE = nem.Message.from_dict(CONFIG['message'])
+
+SSM = boto3.client('ssm', region_name='us-east-1')
 
 # FUNCTIONS
 # ---------
@@ -91,8 +94,9 @@ def send_xqc(recipient, amount, node_list, max_amount=None):
 
     # get parameters
     transfer = create_transfer(recipient, amount)
-    public_key = common.SecureString.from_file('key.pub')
-    private_key = common.SecureString.from_file('key')
+    public_key = binascii.unhexlify(CONFIG['public_key'])
+    secret = SSM.get_parameter(Name='qchainNemPrivateKey', WithDecryption=True)
+    private_key = binascii.unhexlify(secret['Parameter']['Value'])
 
     # get raw byte arrays
     raw_transaction = transfer.to_bytes()

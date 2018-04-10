@@ -2,11 +2,42 @@ service: testnet-xqc
 provider:
   name: aws
   runtime: python3.6
+  region: us-east-1
+  versionFunctions: false
 
 functions:
   sendTestnetXqc:
+    role: sendTestnetXqcRole
     handler: handler.send_testnet_xqc
     events:
       - http:
           path: xqc/testnet/send
           method: get
+
+resources:
+  Resources:
+    sendTestnetXqcRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: sendTestnetXqcRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+
+        Policies:
+          - PolicyName: sendTestnetXqcPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+
+              Statement:
+                - Effect: 'Allow'
+                  Action: 'ssm:GetParameter'
+                  Resource: 'arn:aws:ssm:us-east-1:190698977975:parameter/qchainNemPrivateKey'
+
+                - Effect: 'Allow'
+                  Action: 'kms:Decrypt'
+                  Resource: 'arn:aws:kms:us-west-1:190698977975:key/b18aa147-8b6e-4df9-804a-fa0ba3da43a1'
