@@ -10,11 +10,13 @@ __license__ = "GNU AGPLv3 or commercial, see LICENSE."
 '''
 
 import binascii
+import contextlib
 import datetime
 import decimal
 import json
 import math
 import boto3
+import database
 from qchain import common, nem
 
 # CONFIG
@@ -23,10 +25,49 @@ from qchain import common, nem
 with open('config.json') as f:
     CONFIG = json.load(f)
 
+TRANSFER_MAX_AMOUNT = nem.MicroXem(nem.Xem(CONFIG['transfer_maximum_amount']))
+DAILY_MAX_AMOUNT = nem.MicroXem(nem.Xem(CONFIG['daily_maximum_amount']))
 MOSAIC_DEFINITION = nem.MosaicDefinition.from_dict(CONFIG['mosaic'])
 MESSAGE = nem.Message.from_dict(CONFIG['message'])
 
 SSM = boto3.client('ssm', region_name='us-east-1')
+TESTNET_DB = database.TestnetTable()
+
+# ERRORS
+# ------
+
+
+def bad_request_error():
+    '''Return a bad request.'''
+
+    return nem.Error(
+        nem.new_time_stamp(),
+        "BAD_REQUEST",
+        None,
+        400
+    )
+
+
+def daily_max_error():
+    '''Return a bad request.'''
+
+    return nem.Error(
+        nem.new_time_stamp(),
+        "FAILURE_DAILY_MAX_EXCEEDED",
+        None,
+        400
+    )
+
+
+def transfer_max_error():
+    '''Return a bad request.'''
+
+    return nem.Error(
+        nem.new_time_stamp(),
+        "FAILURE_DAILY_MAX_EXCEEDED",
+        None,
+        400
+    )
 
 # FUNCTIONS
 # ---------
@@ -74,7 +115,7 @@ def create_transfer(recipient, amount):
     )
 
 
-def send_xqc(recipient, amount, node_list, max_amount=None):
+def send_xqc(recipient, amount, node_list):
     '''
     Send testnet XQC to a NEM address. The sending address is hard-coded
     to a master sending account.
@@ -87,10 +128,11 @@ def send_xqc(recipient, amount, node_list, max_amount=None):
 
     # parse and validate the input amount
     amount = nem.MicroXem(nem.Xem(amount))
-    if max_amount is not None:
-        max_amount = nem.MicroXem(nem.Xem(max_amount))
-        if amount > max_amount:
-            raise ValueError("Requested amount is above maximum.")
+    with contextlib.suppress(KeyError):
+        if amount > TRANSFER_MAX_AMOUNT:
+            return transfer_max_error()
+        elif nem.MicroXem(nem.Xem(TESTNET_DB.get(recipient))) > DAILY_MAX_AMOUNT:
+            return daily_max_error()
 
     # get parameters
     transfer = create_transfer(recipient, amount)
@@ -104,7 +146,7 @@ def send_xqc(recipient, amount, node_list, max_amount=None):
     transaction = binascii.hexlify(raw_transaction).decode('ascii')
     signature = binascii.hexlify(raw_signature).decode('ascii')
     request = nem.RequestAnnounce(transaction, signature)
-    result = nem.Error(transfer.time_stamp, "Bad Request", None, 400)
+    result = bad_request_error()
 
     for node in node_list:
         client = nem.Client(*node)
@@ -114,6 +156,7 @@ def send_xqc(recipient, amount, node_list, max_amount=None):
             result = client.transaction.announce(request)
             if not isinstance(request, nem.Error):
                 # successful posted the result, return
+                TESTNET_DB.update(recipient, int(nem.Xem(amount)))
                 return result
             elif result.message == 'FAILURE_INSUFFICIENT_FEE':
                 # insufficient fee provided

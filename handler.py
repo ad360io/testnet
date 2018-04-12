@@ -11,6 +11,7 @@ __license__ = "GNU AGPLv3 or commercial, see LICENSE."
 
 import json
 import testnet
+import traceback    # TODO: remove
 
 
 # FUNCTIONS
@@ -24,8 +25,7 @@ def request_error(exception):
         "statusCode": 500,
         "body": json.dumps({
             "message": "Internal server error.",
-            # TODO: fix
-            "error": str(exception) #type(exception).__name__
+            "error": type(exception).__name__
         })
     }
 
@@ -36,10 +36,9 @@ def send_testnet_xqc(event, context):
     parameters = event['queryStringParameters']
     try:
         address = parameters['address']
-        amount = parameters.get('amount', testnet.CONFIG['default_transfer_amount'])
-        max_amount = testnet.CONFIG['maximum_transfer_amount']
+        amount = parameters.get('amount', testnet.CONFIG['transfer_default_amount'])
         node_list = parameters.get('nodeList', testnet.CONFIG['node_list'])
-        body = testnet.send_xqc(address, amount, node_list, max_amount)
+        body = testnet.send_xqc(address, amount, node_list)
 
     except Exception as exception:
         return request_error(exception)

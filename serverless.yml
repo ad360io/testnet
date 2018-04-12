@@ -41,3 +41,9 @@ resources:
                 - Effect: 'Allow'
                   Action: 'kms:Decrypt'
                   Resource: 'arn:aws:kms:us-west-1:190698977975:key/b18aa147-8b6e-4df9-804a-fa0ba3da43a1'
+
+                - Effect: 'Allow'
+                  Action:
+                    - 'dynamodb:GetItem'
+                    - 'dynamodb:UpdateItem'
+                  Resource: 'arn:aws:dynamodb:us-east-1:190698977975:table/TestNet'
