@@ -11,7 +11,6 @@ __license__ = "GNU AGPLv3 or commercial, see LICENSE."
 
 import json
 import testnet
-import traceback    # TODO: remove
 
 
 # FUNCTIONS
@@ -25,7 +24,7 @@ def request_error(exception):
         "statusCode": 500,
         "body": json.dumps({
             "message": "Internal server error.",
-            "error": traceback.format_exc(), #type(exception).__name__
+            "error": type(exception).__name__
         })
     }
 
