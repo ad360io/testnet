@@ -46,4 +46,6 @@ resources:
                   Action:
                     - 'dynamodb:GetItem'
                     - 'dynamodb:UpdateItem'
+                    - 'dynamodb:Query'
+                    - 'dynamodb:Scan'
                   Resource: 'arn:aws:dynamodb:us-east-1:190698977975:table/TestNet'

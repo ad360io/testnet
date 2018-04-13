@@ -48,16 +48,6 @@ class TestnetTable(object):
 
         self.table = DYNAMODB.create_table(
             TableName='TestNet',
-            KeySchema=[
-                {
-                    'AttributeName': 'address',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'date',
-                    'KeyType': 'RANGE'
-                }
-            ],
             AttributeDefinitions=[
                 {
                     'AttributeName': 'address',
@@ -67,7 +57,16 @@ class TestnetTable(object):
                     'AttributeName': 'date',
                     'AttributeType': 'N'
                 }
-
+            ],
+            KeySchema=[
+                {
+                    'AttributeName': 'date',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'address',
+                    'KeyType': 'RANGE'
+                }
             ],
             ProvisionedThroughput={
                 'ReadCapacityUnits': 10,
@@ -99,13 +98,27 @@ class TestnetTable(object):
         )
         return response['Attributes']['amount']
 
-    def get(self, address):
+    def get(self, address, default=None):
         '''Return a amount in the database by address.'''
 
-        return self.table.get_item(Key=self._key(address))['Item']['amount']
+        try:
+            return self.table.get_item(Key=self._key(address))['Item']['amount']
+        except KeyError:
+            if default is not None:
+                return default
+            raise
 
-    def cumulative_get(self, address):
-        return sum(i['amount'] for i in self._query(address))
+    def total_by_address(self, address):
+        '''O(n) complexity historical lookup by address.'''
+
+        return sum(i['amount'] for i in self._query_address(address))
+
+    def total_by_date(self, date=None):
+        '''O(1) lookup by date. Defaults to the current date.'''
+
+        if date is None:
+            date = current_date()
+        return sum(i['amount'] for i in self._query_date(date))
 
     # PRIVATE
 
@@ -124,8 +137,14 @@ class TestnetTable(object):
             'amount': decimal.Decimal(amount)
         }
 
-    def _query(self, address):
+    def _query_address(self, address):
         '''Query the table for all items at address.'''
 
         condition = Key('address').eq(address)
+        return self.table.scan(FilterExpression=condition)['Items']
+
+    def _query_date(self, date):
+        '''Query the table for all items at date.'''
+
+        condition = Key('date').eq(date)
         return self.table.query(KeyConditionExpression=condition)['Items']

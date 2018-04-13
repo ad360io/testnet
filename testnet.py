@@ -10,7 +10,6 @@ __license__ = "GNU AGPLv3 or commercial, see LICENSE."
 '''
 
 import binascii
-import contextlib
 import datetime
 import decimal
 import json
@@ -48,6 +47,17 @@ def bad_request_error():
     )
 
 
+def invalid_amount_error():
+    '''Return am invalid amount error.'''
+
+    return nem.Error(
+        nem.new_time_stamp(),
+        "FAILURE_INVALID_AMOUNT",
+        "Amount must be greater than 0.",
+        400
+    )
+
+
 def daily_max_error():
     '''Return a bad request.'''
 
@@ -64,7 +74,7 @@ def transfer_max_error():
 
     return nem.Error(
         nem.new_time_stamp(),
-        "FAILURE_DAILY_MAX_EXCEEDED",
+        "FAILURE_TRANSFER_MAX_EXCEEDED",
         None,
         400
     )
@@ -128,11 +138,14 @@ def send_xqc(recipient, amount, node_list):
 
     # parse and validate the input amount
     amount = nem.MicroXem(nem.Xem(amount))
-    with contextlib.suppress(KeyError):
-        if amount > TRANSFER_MAX_AMOUNT:
-            return transfer_max_error()
-        elif nem.MicroXem(nem.Xem(TESTNET_DB.get(recipient))) > DAILY_MAX_AMOUNT:
-            return daily_max_error()
+    address_total = nem.MicroXem(nem.Xem(TESTNET_DB.get(recipient, 0)))
+    daily_total = nem.MicroXem(nem.Xem(TESTNET_DB.total_by_date()))
+    if amount <= nem.MicroXem(0):
+        return invalid_amount_error()
+    elif address_total + amount > TRANSFER_MAX_AMOUNT:
+        return transfer_max_error()
+    elif daily_total > DAILY_MAX_AMOUNT:
+        return daily_max_error()
 
     # get parameters
     transfer = create_transfer(recipient, amount)

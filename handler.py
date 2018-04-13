@@ -25,7 +25,7 @@ def request_error(exception):
         "statusCode": 500,
         "body": json.dumps({
             "message": "Internal server error.",
-            "error": type(exception).__name__
+            "error": traceback.format_exc(), #type(exception).__name__
         })
     }
 
